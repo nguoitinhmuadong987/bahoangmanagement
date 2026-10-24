@@ -210,6 +210,13 @@ const firebaseConfig = {
   appId: "1:891060466352:web:d562bb4480382c83b40175",
   measurementId: "G-R7NGBH4E4N"
 };
+let db = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+} catch(e) {
+  console.log("Lỗi khởi tạo Firebase:", e);
+}
 /*DATE*/
 const pad = n => String(n).padStart(2, '0');
 const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
