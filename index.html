@@ -200,7 +200,15 @@ h1 { margin: 0; font: 500 clamp(30px, 4.2vw, 46px)/1.05 var(--font-display); let
 <script>
 (function () {
 'use strict';
-
+const firebaseConfig = {
+  apiKey: "AIzaSyCUkZzm9FivJx_2SGeB_VMQPK0AYCmmWjA",
+  authDomain: "bahoangmanagement.firebaseapp.com",
+  projectId: "bahoangmanagement",
+  storageBucket: "bahoangmanagement.firebasestorage.app",
+  messagingSenderId: "891060466352",
+  appId: "1:891060466352:web:d562bb4480382c83b40175",
+  measurementId: "G-R7NGBH4E4N"
+};
 /*DATE*/
 const pad = n => String(n).padStart(2, '0');
 const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
