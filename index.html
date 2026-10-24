@@ -1,0 +1,740 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Kế hoạch tuần 주간</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Newsreader:opsz,wght@6..72,400;500;600&display=swap">
+<style>
+:root {
+  /* Layout: ink-dark desk. Header with week progress, a five-week strip that doubles as drop targets for moving cards between weeks, a lane for week-long tasks, then seven day columns (Saturday blue, Sunday red, as on a Korean calendar). */
+  --bg: #14161c;
+  --panel: #1a1d26;
+  --panel-2: #222634;
+  --line: #2f3446;
+  --line-soft: #262b3a;
+  --fg: #ebe7df;
+  --fg-dim: #a9abb8;
+  --fg-mute: #868b9e;
+  --accent: #e48e9a;
+  --accent-ink: #2b1318;
+  --accent-soft: rgba(228, 142, 154, 0.14);
+  --sat: #86a9db;
+  --sun: #e5848f;
+  --t0: #cfcbc2;
+  --t1: #7ea6d9;
+  --t2: #e07f8b;
+  --t3: #dcbb6e;
+  --t4: #8dc0a0;
+  --t5: #ab98d8;
+  --font-display: 'Newsreader', 'Gowun Batang', 'Noto Serif KR', serif;
+  --font-body: 'Be Vietnam Pro', 'Gowun Dodum', 'Noto Sans KR', system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background-color: var(--bg);
+  background-image: radial-gradient(1100px 460px at 88% -8%, rgba(228, 142, 154, 0.08), transparent 62%),
+                    radial-gradient(900px 400px at 0% 0%, rgba(126, 166, 217, 0.05), transparent 60%);
+  background-repeat: no-repeat;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  padding-block: 28px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1480px; margin: 0 auto; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px 28px; }
+.brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.seal {
+  flex: none; width: 46px; height: 46px; border-radius: 6px;
+  background: var(--accent); color: var(--accent-ink);
+  display: grid; place-items: center;
+  font: 700 24px/1 var(--font-display); transform: rotate(-3deg);
+}
+.eyebrow { margin: 0; font-size: 12px; letter-spacing: 0.2em; color: var(--accent); }
+h1 { margin: 0; font: 500 clamp(30px, 4.2vw, 46px)/1.05 var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+.range { margin: 4px 0 0; color: var(--fg-dim); }
+.nav { display: flex; align-items: center; gap: 8px; }
+.btn {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 8px 16px; line-height: 1.2; transition: border-color .15s, background .15s;
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.round { width: 38px; height: 38px; padding: 0; font-size: 20px; display: grid; place-items: center; }
+.btn.ghost { background: transparent; }
+.prog { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.prog .count { font-variant-numeric: tabular-nums; color: var(--fg-dim); }
+.bar { width: 140px; height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .25s; }
+
+/* banner */
+.banner {
+  margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  padding: 12px 16px; border: 1px dashed var(--line); border-radius: 10px; color: var(--fg-dim);
+}
+.banner p { margin: 0; min-width: 0; }
+
+/* week strip */
+.cap { margin: 24px 0 8px; font-size: 12px; color: var(--fg-mute); letter-spacing: 0.02em; }
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.chip {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left;
+  background: var(--panel); border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px; min-width: 0;
+  transition: border-color .15s, background .15s;
+}
+.chip:hover { border-color: var(--line); }
+.chip .ct { display: flex; flex-direction: column; min-width: 0; }
+.chip .wk { font: 500 17px/1.2 var(--font-display); }
+.chip .tag { font: 400 11px var(--font-body); color: var(--accent); margin-left: 6px; letter-spacing: 0.03em; }
+.chip .rg { font-size: 12px; color: var(--fg-mute); font-variant-numeric: tabular-nums; }
+.chip .cnt { flex: none; min-width: 22px; text-align: center; font-size: 12px; color: var(--fg-dim); font-variant-numeric: tabular-nums; }
+.chip .cnt:not(:empty) { background: var(--panel-2); border-radius: 999px; padding: 1px 8px; }
+.chip.cur { border-color: var(--accent); background: var(--accent-soft); }
+.is-dragging .chip { border-style: dashed; border-color: var(--line); }
+.chip.over { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
+
+/* lane + columns */
+.lane {
+  background: var(--panel); border: 1px dashed var(--line); border-radius: 12px;
+  padding: 10px 12px 6px; margin-bottom: 10px; transition: background .15s;
+}
+.lane.over, .col.over { background: var(--panel-2); }
+.lane-h { display: flex; align-items: baseline; gap: 8px; padding: 2px 2px 8px; }
+.lane-h .dn { font-weight: 500; }
+.hg { font-family: var(--font-display); font-size: 13px; color: var(--fg-mute); }
+.lane .cards { display: flex; flex-wrap: wrap; flex-direction: row; gap: 8px; padding: 4px 0 6px; min-height: 8px; }
+.lane .task { flex: 1 1 230px; max-width: 420px; }
+.lane .add { margin: 2px 0 8px; }
+
+.days { display: grid; gap: 10px; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+@media (max-width: 1180px) { .days { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 820px) { .days { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .days { grid-template-columns: minmax(0, 1fr); } }
+.col {
+  display: flex; flex-direction: column; min-width: 0; min-height: 280px;
+  background: var(--panel); border: 1px solid var(--line-soft); border-radius: 12px; transition: background .15s;
+}
+.col.today { border-color: rgba(228, 142, 154, 0.55); }
+.dh { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 14px 14px 8px; }
+.dl { display: flex; align-items: baseline; gap: 6px; min-width: 0; flex-wrap: wrap; }
+.dn { font-weight: 500; }
+.col.sat .dn, .col.sat .hg { color: var(--sat); }
+.col.sun .dn, .col.sun .hg { color: var(--sun); }
+.dr { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.num { font: 500 26px/1.1 var(--font-display); font-variant-numeric: tabular-nums; padding: 0 7px; border-radius: 8px; }
+.today .num { background: var(--accent); color: var(--accent-ink); }
+.mo { font-size: 11px; color: var(--fg-mute); padding-right: 7px; margin-top: 2px; }
+.cards { display: flex; flex-direction: column; gap: 6px; padding: 6px 10px; flex: 1; min-height: 96px; border-radius: 8px; }
+.cards.ins-end { box-shadow: inset 0 -2px 0 var(--accent); }
+.add {
+  display: block; width: calc(100% - 20px); margin: 4px 10px 12px; background: transparent; border: 0;
+  border-bottom: 1px dashed var(--line); border-radius: 0; padding: 8px 2px; color: var(--fg);
+}
+.add::placeholder { color: var(--fg-mute); }
+.add:focus { outline: none; border-bottom-color: var(--accent); border-bottom-style: solid; }
+
+/* task card */
+.task {
+  position: relative; display: flex; align-items: flex-start; gap: 10px; min-width: 0;
+  background: var(--panel-2); border: 1px solid transparent; border-radius: 8px; padding: 9px 10px;
+  cursor: grab; transition: border-color .12s;
+}
+.task:hover { border-color: var(--line); }
+.task.dragging { opacity: .35; }
+.task.ins-before { box-shadow: 0 -4px 0 -2px var(--accent); }
+.lane .task.ins-before { box-shadow: -4px 0 0 -2px var(--accent); }
+.chk {
+  flex: none; width: 18px; height: 18px; margin-top: 2px; padding: 0; border-radius: 50%;
+  border: 2px solid var(--tone, var(--t0)); background: transparent; display: grid; place-items: center;
+}
+.task.done .chk { background: var(--tone, var(--t0)); }
+.task.done .chk::after {
+  content: ''; width: 4px; height: 8px; border: solid var(--bg); border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+.txt { flex: 1; min-width: 0; overflow-wrap: anywhere; cursor: text; border-radius: 4px; outline-offset: 3px; }
+.txt[contenteditable="true"] { cursor: text; outline: 1px solid var(--accent); }
+.task.done .txt { color: var(--fg-mute); text-decoration: line-through; text-decoration-color: var(--fg-mute); }
+.sample { font-size: 10px; letter-spacing: .08em; color: var(--fg-mute); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
+.tools {
+  position: absolute; right: 6px; top: -14px; z-index: 3; display: flex; gap: 2px; padding: 2px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
+  opacity: 0; pointer-events: none; transition: opacity .12s;
+}
+.task:hover .tools, .task:focus-within .tools { opacity: 1; pointer-events: auto; }
+.tb { width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--fg-dim); display: grid; place-items: center; font-size: 15px; line-height: 1; }
+.tb:hover { background: var(--panel-2); color: var(--fg); }
+.tb.tone { color: var(--tone, var(--t0)); font-size: 11px; }
+@media (hover: none) { .tools { opacity: 1; pointer-events: auto; } }
+
+/* footer */
+.foot { margin-top: 22px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; color: var(--fg-mute); font-size: 12px; }
+.foot p { margin: 0; }
+
+/* toast + drag keeper */
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 20;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px)); max-width: calc(100% - 32px);
+  display: flex; align-items: center; gap: 14px; padding: 10px 12px 10px 16px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; box-shadow: 0 8px 28px rgba(0, 0, 0, .45);
+}
+.toast button { background: transparent; border: 0; color: var(--accent); font-weight: 600; padding: 4px 8px; border-radius: 999px; }
+.toast button:hover { background: var(--accent-soft); }
+#keeper { position: fixed; left: -9999px; top: 0; width: 220px; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap"><div id="app"></div></div>
+<div id="keeper" aria-hidden="true"></div>
+<div id="toast" class="toast" role="status" hidden><span id="toast-msg"></span><button id="toast-undo" type="button">Hoàn tác</button></div>
+
+<script>
+(function () {
+'use strict';
+
+/*DATE*/
+const pad = n => String(n).padStart(2, '0');
+const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const parse = s => { const p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const mondayOf = d => addDays(d, -((d.getDay() + 6) % 7));
+function isoWeek(mon) {
+  const th = addDays(mon, 3);
+  const jan4 = new Date(th.getFullYear(), 0, 4);
+  return 1 + Math.round(((th - jan4) / 864e5 - 3 + ((jan4.getDay() + 6) % 7)) / 7);
+}
+/*END*/
+
+const LS = 'ke-hoach-tuan-v1';
+const DAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+const KO = ['월', '화', '수', '목', '금', '토', '일'];
+const TONES = ['백', '청', '적', '황', '록', '자'];
+const STATUS = {
+  init: '',
+  saving: 'Đang lưu…',
+  saved: 'Đã lưu vào tài khoản của bạn',
+  error: 'Chưa lưu lên tài khoản được, tạm giữ trong trình duyệt',
+  local: 'Đang lưu trong trình duyệt này'
+};
+
+let tasks = [];
+let localRev = 0, myRev = 0;
+let view = iso(mondayOf(new Date()));
+let lastDay = iso(new Date());
+let dragId = null, dragEl = null, editing = false, hoverTimer = null;
+let ref = null, writing = false, queued = false, saveTimer = null, saveState = 'init';
+let pendingRemote = null, undoFn = null, toastTimer = null;
+const drafts = {};
+
+const root = document.getElementById('app');
+const keeper = document.getElementById('keeper');
+const toastEl = document.getElementById('toast');
+
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const busy = () => !!dragId || editing;
+
+function h(tag, attrs) {
+  const el = document.createElement(tag);
+  if (attrs) {
+    for (const k of Object.keys(attrs)) {
+      const v = attrs[k];
+      if (v == null || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k === 'style') Object.assign(el.style, v);
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+  }
+  for (let i = 2; i < arguments.length; i++) {
+    const kids = [].concat(arguments[i]);
+    for (const kid of kids) {
+      if (kid == null || kid === false) continue;
+      el.append(kid.nodeType ? kid : document.createTextNode(kid));
+    }
+  }
+  return el;
+}
+
+/* ---------- data ---------- */
+function clean(arr) {
+  const out = [], seen = new Set();
+  for (const o of arr) {
+    if (!o || typeof o.t !== 'string' || typeof o.id !== 'string' || seen.has(o.id)) continue;
+    if (typeof o.w !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(o.w)) continue;
+    const d = Number.isInteger(o.d) && o.d >= -1 && o.d <= 6 ? o.d : -1;
+    const c = Number.isInteger(o.c) && o.c >= 0 && o.c <= 5 ? o.c : 0;
+    const t = { id: o.id, t: o.t.slice(0, 200), w: iso(mondayOf(parse(o.w))), d: d, x: !!o.x, c: c };
+    if (o.s) t.s = 1;
+    seen.add(o.id);
+    out.push(t);
+  }
+  return out;
+}
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LS);
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    if (o && Array.isArray(o.tasks)) { tasks = clean(o.tasks); localRev = o.rev || 0; myRev = localRev; }
+  } catch (e) {}
+}
+function writeLocal() {
+  try { localStorage.setItem(LS, JSON.stringify({ tasks: tasks, rev: localRev })); } catch (e) {}
+}
+function commit() {
+  localRev = Math.max(Date.now(), localRev + 1);
+  writeLocal();
+  render();
+  scheduleSave();
+}
+function withUndo(msg, fn) {
+  const snap = JSON.stringify(tasks);
+  fn();
+  commit();
+  showToast(msg, () => { tasks = JSON.parse(snap); commit(); });
+}
+
+/* ---------- saving to the account ---------- */
+function setStatus(s) {
+  saveState = s;
+  const el = document.getElementById('save-status');
+  if (el) el.textContent = STATUS[s] || '';
+}
+function scheduleSave() {
+  if (!ref) { setStatus('local'); return; }
+  setStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 350);
+}
+async function flush() {
+  clearTimeout(saveTimer); saveTimer = null;
+  if (!ref) { setStatus('local'); return; }
+  if (writing) { queued = true; return; }
+  writing = true;
+  try {
+    do {
+      queued = false;
+      myRev = localRev;
+      const body = { tasks: JSON.parse(JSON.stringify(tasks)), rev: myRev, v: 1 };
+      try { await ref.set(body); }
+      catch (e) {
+        if (e && e.code === 'unavailable') { await sleep(900 + Math.random() * 600); await ref.set(body); }
+        else throw e;
+      }
+    } while (queued);
+    setStatus('saved');
+  } catch (e) { setStatus('error'); }
+  finally { writing = false; }
+}
+function adoptRemote(d) {
+  tasks = clean(d.tasks);
+  localRev = myRev = d.rev || 0;
+  pendingRemote = null;
+  writeLocal();
+  render();
+}
+function applyPending() {
+  if (pendingRemote && !busy()) adoptRemote(pendingRemote);
+}
+async function connect() {
+  let db = null, user = null, id = null;
+  try {
+    if (window.claude && window.claude.use) {
+      const r = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+      db = r[0]; user = r[1];
+    }
+  } catch (e) {}
+  try { id = user ? await user.id() : null; } catch (e) {}
+  if (!db || !id) { setStatus('local'); return; }
+  try { ref = db.doc('data/users/' + id + '/planner'); } catch (e) { setStatus('local'); return; }
+  let first = true;
+  ref.onSnapshot(function (snap) {
+    const d = snap.exists ? snap.data() : null;
+    const remote = d && Array.isArray(d.tasks) ? d : null;
+    if (first) {
+      first = false;
+      if (remote && (remote.rev || 0) >= localRev) { adoptRemote(remote); setStatus('saved'); }
+      else if (tasks.length || (remote && localRev > 0)) scheduleSave();
+      else setStatus('saved');
+      return;
+    }
+    if (snap.metadata.hasPendingWrites || !remote) return;
+    if ((remote.rev || 0) <= myRev) return;
+    if (busy()) { pendingRemote = remote; return; }
+    adoptRemote(remote);
+  }, function () { ref = null; setStatus('local'); });
+}
+
+/* ---------- actions ---------- */
+function addTask(text, day) {
+  tasks.push({ id: uid(), t: text.trim().slice(0, 200), w: view, d: day, x: false, c: 0 });
+  commit();
+}
+function removeTask(t) {
+  withUndo('Đã xóa việc', () => { tasks = tasks.filter(x => x !== t); });
+}
+function weekName(w) { return 'Tuần ' + isoWeek(parse(w)); }
+function shiftWeek(t, n) {
+  const target = iso(addDays(parse(t.w), 7 * n));
+  withUndo('Đã chuyển sang ' + weekName(target), () => {
+    t.w = target;
+    tasks = tasks.filter(x => x !== t);
+    tasks.push(t);
+  });
+}
+function placeTask(id, w, d, index) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  const col = tasks.filter(x => x.w === w && x.d === d && x.id !== id);
+  const refT = index < col.length ? col[index] : null;
+  tasks = tasks.filter(x => x !== t);
+  t.w = w; t.d = d;
+  if (refT) tasks.splice(tasks.indexOf(refT), 0, t); else tasks.push(t);
+}
+function dropOnDay(id, day, index) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  const moved = t.w !== view || t.d !== day;
+  if (moved) withUndo(t.w !== view ? 'Đã chuyển sang ' + weekName(view) : 'Đã chuyển việc', () => placeTask(id, view, day, index));
+  else { placeTask(id, view, day, index); commit(); }
+}
+function dropOnWeek(id, w) {
+  const t = tasks.find(x => x.id === id);
+  if (!t || t.w === w) return;
+  withUndo('Đã chuyển sang ' + weekName(w), () => placeTask(id, w, t.d, Infinity));
+}
+function carryOver() {
+  const open = tasks.filter(t => t.w === view && !t.x);
+  if (!open.length) return;
+  const next = iso(addDays(parse(view), 7));
+  withUndo('Đã dời ' + open.length + ' việc sang ' + weekName(next), () => { open.forEach(t => { t.w = next; }); });
+}
+function addSamples() {
+  const rows = [[0, 'Đọc tài liệu chương mới', 1], [1, 'Họp nhóm lúc 14:00', 3], [2, 'Nộp bài tập', 2], [4, 'Tập thể dục 30 phút', 4], [-1, 'Dọn góc học tập', 0]];
+  rows.forEach(r => tasks.push({ id: uid(), t: r[1], w: view, d: r[0], x: false, c: r[2], s: 1 }));
+  commit();
+}
+function clearSamples() {
+  withUndo('Đã xóa việc mẫu', () => { tasks = tasks.filter(t => !t.s); });
+}
+function goto(w) { view = w; render(); }
+function shiftView(n) { goto(iso(addDays(parse(view), 7 * n))); }
+
+function showToast(msg, undo) {
+  document.getElementById('toast-msg').textContent = msg;
+  undoFn = undo;
+  toastEl.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 6500);
+}
+function hideToast() { toastEl.hidden = true; undoFn = null; }
+document.getElementById('toast-undo').addEventListener('click', () => {
+  const f = undoFn; hideToast(); if (f) f();
+});
+
+/* ---------- drag and drop ---------- */
+function clearMarks() {
+  root.querySelectorAll('.over, .ins-before, .ins-end').forEach(el => el.classList.remove('over', 'ins-before', 'ins-end'));
+}
+function endDrag() {
+  dragId = null; dragEl = null;
+  clearTimeout(hoverTimer);
+  clearMarks();
+  document.body.classList.remove('is-dragging');
+  keeper.replaceChildren();
+  applyPending();
+}
+function idxFor(listEl, x, y, horizontal) {
+  const cards = [].filter.call(listEl.querySelectorAll('.task'), c => c.dataset.id !== dragId);
+  for (let i = 0; i < cards.length; i++) {
+    const r = cards[i].getBoundingClientRect();
+    if (horizontal) { if (y < r.top || (y <= r.bottom && x < r.left + r.width / 2)) return i; }
+    else if (y < r.top + r.height / 2) return i;
+  }
+  return cards.length;
+}
+function markIndex(listEl, i) {
+  const cards = [].filter.call(listEl.querySelectorAll('.task'), c => c.dataset.id !== dragId);
+  if (i < cards.length) cards[i].classList.add('ins-before'); else listEl.classList.add('ins-end');
+}
+function wireDrop(zone, listEl, day, horizontal) {
+  zone.addEventListener('dragover', e => {
+    if (!dragId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    clearMarks();
+    zone.classList.add('over');
+    markIndex(listEl, idxFor(listEl, e.clientX, e.clientY, horizontal));
+  });
+  zone.addEventListener('dragleave', e => {
+    if (!zone.contains(e.relatedTarget)) clearMarks();
+  });
+  zone.addEventListener('drop', e => {
+    if (!dragId) return;
+    e.preventDefault();
+    const i = idxFor(listEl, e.clientX, e.clientY, horizontal);
+    const id = dragId;
+    endDrag();
+    dropOnDay(id, day, i);
+  });
+}
+
+/* ---------- views ---------- */
+function rangeText(mon) {
+  const s = mon, e = addDays(mon, 6);
+  if (s.getFullYear() !== e.getFullYear()) return s.getDate() + ' tháng ' + (s.getMonth() + 1) + ', ' + s.getFullYear() + ' – ' + e.getDate() + ' tháng ' + (e.getMonth() + 1) + ', ' + e.getFullYear();
+  if (s.getMonth() === e.getMonth()) return s.getDate() + ' – ' + e.getDate() + ' tháng ' + (e.getMonth() + 1) + ', ' + e.getFullYear();
+  return s.getDate() + ' tháng ' + (s.getMonth() + 1) + ' – ' + e.getDate() + ' tháng ' + (e.getMonth() + 1) + ', ' + e.getFullYear();
+}
+function shortRange(mon) {
+  const e = addDays(mon, 6);
+  return mon.getDate() + '/' + (mon.getMonth() + 1) + ' – ' + e.getDate() + '/' + (e.getMonth() + 1);
+}
+
+function header() {
+  const mon = parse(view);
+  const wt = tasks.filter(t => t.w === view);
+  const done = wt.filter(t => t.x).length;
+  const open = wt.length - done;
+  const nowW = iso(mondayOf(new Date()));
+  return h('header', { class: 'top' },
+    h('div', { class: 'brand' },
+      h('span', { class: 'seal', 'aria-hidden': 'true', text: '주' }),
+      h('div', null,
+        h('p', { class: 'eyebrow', text: '주간 계획' }),
+        h('h1', { text: 'Tuần ' + isoWeek(mon) }),
+        h('p', { class: 'range', text: rangeText(mon) }))),
+    h('div', { class: 'prog' },
+      h('span', { class: 'count', text: wt.length ? done + '/' + wt.length + ' việc xong' : 'Chưa có việc nào' }),
+      h('div', { class: 'bar', 'aria-hidden': 'true' }, h('i', { style: { width: (wt.length ? Math.round(done / wt.length * 100) : 0) + '%' } })),
+      h('button', { class: 'btn ghost', type: 'button', id: 'btn-carry', disabled: open === 0, title: 'Dời mọi việc chưa xong sang tuần sau', onclick: carryOver, text: 'Dời việc chưa xong sang tuần sau' })),
+    h('div', { class: 'nav' },
+      h('button', { class: 'btn round', type: 'button', id: 'btn-prev', 'aria-label': 'Tuần trước', title: 'Tuần trước (←)', onclick: () => shiftView(-1), text: '‹' }),
+      h('button', { class: 'btn', type: 'button', id: 'btn-today', disabled: view === nowW, onclick: () => goto(nowW), text: 'Tuần này' }),
+      h('button', { class: 'btn round', type: 'button', id: 'btn-next', 'aria-label': 'Tuần sau', title: 'Tuần sau (→)', onclick: () => shiftView(1), text: '›' })));
+}
+
+function banner() {
+  if (!tasks.length) {
+    return h('div', { class: 'banner' },
+      h('p', { text: 'Kế hoạch đang trống. Gõ việc vào ô “Thêm việc” của từng ngày, hoặc xem thử với vài việc mẫu.' }),
+      h('button', { class: 'btn', type: 'button', id: 'btn-sample', onclick: addSamples, text: 'Thêm vài việc mẫu' }));
+  }
+  if (tasks.some(t => t.s)) {
+    return h('div', { class: 'banner' },
+      h('p', { text: 'Một số thẻ là việc mẫu (có nhãn “mẫu”). Sửa nội dung để giữ lại, hoặc xóa hết một lần.' }),
+      h('button', { class: 'btn', type: 'button', id: 'btn-clear-sample', onclick: clearSamples, text: 'Xóa việc mẫu' }));
+  }
+  return null;
+}
+
+function strip() {
+  const nowW = iso(mondayOf(new Date()));
+  const chips = [];
+  for (let o = -2; o <= 2; o++) {
+    const mon = addDays(parse(view), 7 * o);
+    const w = iso(mon);
+    const open = tasks.filter(t => t.w === w && !t.x).length;
+    const chip = h('button', {
+      class: 'chip' + (w === view ? ' cur' : ''), type: 'button', 'data-w': w,
+      'aria-current': w === view ? 'true' : null,
+      'aria-label': 'Tuần ' + isoWeek(mon) + ', ' + shortRange(mon) + (open ? ', ' + open + ' việc chưa xong' : ''),
+      onclick: () => goto(w)
+    },
+      h('span', { class: 'ct' },
+        h('span', { class: 'wk' }, 'Tuần ' + isoWeek(mon), w === nowW ? h('span', { class: 'tag', text: 'tuần này' }) : null),
+        h('span', { class: 'rg', text: shortRange(mon) })),
+      h('span', { class: 'cnt', text: open ? String(open) : '' }));
+    chip.addEventListener('dragenter', e => {
+      if (!dragId) return;
+      e.preventDefault();
+      clearMarks();
+      chip.classList.add('over');
+      clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(() => {
+        if (dragId && chip.classList.contains('over') && w !== view) { view = w; render(); }
+      }, 900);
+    });
+    chip.addEventListener('dragover', e => {
+      if (!dragId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    chip.addEventListener('dragleave', e => {
+      if (!chip.contains(e.relatedTarget)) { chip.classList.remove('over'); clearTimeout(hoverTimer); }
+    });
+    chip.addEventListener('drop', e => {
+      if (!dragId) return;
+      e.preventDefault();
+      const id = dragId;
+      endDrag();
+      dropOnWeek(id, w);
+    });
+    chips.push(chip);
+  }
+  return h('div', null,
+    h('p', { class: 'cap', text: 'Kéo thẻ việc thả lên một tuần để chuyển sang tuần đó. Giữ thẻ trên tuần khác khoảng một giây để mở tuần ấy.' }),
+    h('nav', { class: 'strip', 'aria-label': 'Các tuần gần đây' }, chips));
+}
+
+function addInput(day) {
+  const inp = h('input', {
+    class: 'add', type: 'text', id: 'add-' + (day + 1), maxlength: '200', autocomplete: 'off', enterkeyhint: 'done',
+    'data-fk': 'a:' + day,
+    placeholder: day === -1 ? '+ Thêm việc cả tuần' : '+ Thêm việc',
+    'aria-label': day === -1 ? 'Thêm việc cả tuần' : 'Thêm việc cho ' + DAYS[day]
+  });
+  inp.value = drafts[day] || '';
+  inp.addEventListener('input', () => { drafts[day] = inp.value; });
+  inp.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.isComposing) return;
+    const v = inp.value.trim();
+    if (!v) return;
+    drafts[day] = '';
+    addTask(v, day);
+  });
+  return inp;
+}
+
+function tb(glyph, label, fn, cls, fk) {
+  return h('button', { class: 'tb' + (cls ? ' ' + cls : ''), type: 'button', 'aria-label': label, title: label, 'data-fk': fk, onclick: e => { e.stopPropagation(); fn(); }, text: glyph });
+}
+
+function taskCard(t) {
+  const span = h('span', { class: 'txt', tabindex: '0', title: 'Nhấn để sửa', 'data-fk': 'x:' + t.id }, t.t, t.s ? h('span', { class: 'sample', text: 'mẫu' }) : null);
+  const card = h('div', { class: 'task' + (t.x ? ' done' : ''), draggable: 'true', 'data-id': t.id },
+    h('button', { class: 'chk', type: 'button', role: 'checkbox', 'aria-checked': String(t.x), 'aria-label': 'Đánh dấu xong', 'data-fk': 'c:' + t.id, onclick: () => { t.x = !t.x; commit(); } }),
+    span,
+    h('div', { class: 'tools' },
+      tb('‹', 'Chuyển sang tuần trước', () => shiftWeek(t, -1)),
+      tb('›', 'Chuyển sang tuần sau', () => shiftWeek(t, 1)),
+      tb('●', 'Đổi màu (' + TONES[t.c] + ')', () => { t.c = (t.c + 1) % 6; commit(); }, 'tone', 'tn:' + t.id),
+      tb('×', 'Xóa việc', () => removeTask(t))));
+  card.style.setProperty('--tone', 'var(--t' + t.c + ')');
+
+  let cancelled = false;
+  function begin() {
+    if (editing) return;
+    editing = true; cancelled = false;
+    card.draggable = false;
+    span.querySelectorAll('.sample').forEach(s => s.remove());
+    span.contentEditable = 'true';
+    span.focus();
+    const r = document.createRange();
+    r.selectNodeContents(span); r.collapse(false);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  function finish() {
+    if (!editing || span.contentEditable !== 'true') return;
+    editing = false;
+    span.contentEditable = 'false';
+    const v = span.textContent.replace(/\s+/g, ' ').trim().slice(0, 200);
+    if (!cancelled && v && v !== t.t) { t.t = v; delete t.s; commit(); }
+    else { card.replaceWith(taskCard(t)); applyPending(); }
+  }
+  span.addEventListener('click', begin);
+  span.addEventListener('keydown', e => {
+    if (!editing) { if (e.key === 'Enter' || e.key === 'F2') { e.preventDefault(); begin(); } return; }
+    if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
+    else if (e.key === 'Escape') { cancelled = true; span.blur(); }
+  });
+  span.addEventListener('blur', finish);
+  span.addEventListener('paste', e => {
+    e.preventDefault();
+    const tx = ((e.clipboardData || window.clipboardData).getData('text') || '').replace(/\s+/g, ' ');
+    document.execCommand('insertText', false, tx);
+  });
+
+  card.addEventListener('dragstart', e => {
+    if (editing) { e.preventDefault(); return; }
+    dragId = t.id; dragEl = card;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', t.id);
+    document.body.classList.add('is-dragging');
+    requestAnimationFrame(() => card.classList.add('dragging'));
+  });
+  card.addEventListener('dragend', endDrag);
+  return card;
+}
+
+function dayList(day) { return tasks.filter(t => t.w === view && t.d === day); }
+
+function lane() {
+  const cards = h('div', { class: 'cards' }, dayList(-1).map(taskCard));
+  const el = h('section', { class: 'lane', 'aria-label': 'Việc cả tuần' },
+    h('div', { class: 'lane-h' }, h('span', { class: 'dn', text: 'Cả tuần' }), h('span', { class: 'hg', text: '주간' })),
+    cards, addInput(-1));
+  wireDrop(el, cards, -1, true);
+  return el;
+}
+
+function dayCol(i) {
+  const date = addDays(parse(view), i);
+  const isToday = iso(date) === iso(new Date());
+  const cards = h('div', { class: 'cards' }, dayList(i).map(taskCard));
+  const col = h('section', { class: 'col' + (isToday ? ' today' : '') + (i === 5 ? ' sat' : '') + (i === 6 ? ' sun' : ''), 'aria-label': DAYS[i] + ' ' + date.getDate() + ' tháng ' + (date.getMonth() + 1) },
+    h('header', { class: 'dh' },
+      h('div', { class: 'dl' }, h('span', { class: 'dn', text: DAYS[i] }), h('span', { class: 'hg', text: KO[i] })),
+      h('div', { class: 'dr' }, h('span', { class: 'num', text: String(date.getDate()) }), h('span', { class: 'mo', text: 'thg ' + (date.getMonth() + 1) }))),
+    cards, addInput(i));
+  wireDrop(col, cards, i, false);
+  return col;
+}
+
+function foot() {
+  return h('footer', { class: 'foot' },
+    h('p', { text: 'Phím ← → đổi tuần, T về tuần này. Nhấn vào chữ để sửa, Enter để lưu.' }),
+    h('p', { id: 'save-status', 'aria-live': 'polite', text: STATUS[saveState] || '' }));
+}
+
+function render() {
+  const ae = document.activeElement;
+  const fk = ae && ae.dataset ? ae.dataset.fk : null;
+  if (dragEl && dragEl.isConnected) keeper.append(dragEl);
+  const days = [];
+  for (let i = 0; i < 7; i++) days.push(dayCol(i));
+  root.replaceChildren(header(), banner(), strip(), lane(), h('div', { class: 'days' }, days), foot());
+  if (fk) {
+    const n = root.querySelector('[data-fk="' + fk.replace(/"/g, '\\"') + '"]');
+    if (n) {
+      n.focus({ preventScroll: true });
+      if (n.tagName === 'INPUT') n.setSelectionRange(n.value.length, n.value.length);
+    }
+  }
+}
+
+/* ---------- keyboard, lifecycle ---------- */
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+  const el = e.target;
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+  if (e.key === 'ArrowLeft') { e.preventDefault(); shiftView(-1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); shiftView(1); }
+  else if (e.key === 't' || e.key === 'T') { goto(iso(mondayOf(new Date()))); }
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && saveTimer) flush();
+});
+setInterval(() => {
+  const d = iso(new Date());
+  if (d !== lastDay && !busy()) { lastDay = d; render(); }
+}, 60000);
+
+loadLocal();
+render();
+connect();
+})();
+</script>
+
+</body></html>
