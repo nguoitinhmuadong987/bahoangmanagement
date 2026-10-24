@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Newsreader:opsz,wght@6..72,400;500;600&display=swap">
 <style>
 :root {
-  /* Layout: ink-dark desk. Header with week progress, a five-week strip that doubles as drop targets for moving cards between weeks, a lane for week-long tasks, then seven day columns (Saturday blue, Sunday red, as on a Korean calendar). */
   --bg: #14161c;
   --panel: #1a1d26;
   --panel-2: #222634;
@@ -197,9 +196,14 @@ h1 { margin: 0; font: 500 clamp(30px, 4.2vw, 46px)/1.05 var(--font-display); let
 <div id="keeper" aria-hidden="true"></div>
 <div id="toast" class="toast" role="status" hidden><span id="toast-msg"></span><button id="toast-undo" type="button">Hoàn tác</button></div>
 
+<!-- Thư viện Firebase Realtime Database SDK v8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <script>
 (function () {
 'use strict';
+
 const firebaseConfig = {
   apiKey: "AIzaSyCUkZzm9FivJx_2SGeB_VMQPK0AYCmmWjA",
   authDomain: "bahoangmanagement.firebaseapp.com",
@@ -210,13 +214,17 @@ const firebaseConfig = {
   appId: "1:891060466352:web:d562bb4480382c83b40175",
   measurementId: "G-R7NGBH4E4N"
 };
+
 let db = null;
 try {
-  firebase.initializeApp(firebaseConfig);
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
   db = firebase.database();
 } catch(e) {
   console.log("Lỗi khởi tạo Firebase:", e);
 }
+
 /*DATE*/
 const pad = n => String(n).padStart(2, '0');
 const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -236,18 +244,17 @@ const KO = ['월', '화', '수', '목', '금', '토', '일'];
 const TONES = ['백', '청', '적', '황', '록', '자'];
 const STATUS = {
   init: '',
-  saving: 'Đang lưu…',
-  saved: 'Đã lưu vào tài khoản của bạn',
-  error: 'Chưa lưu lên tài khoản được, tạm giữ trong trình duyệt',
-  local: 'Đang lưu trong trình duyệt này'
+  saving: 'Đang đồng bộ đám mây…',
+  saved: 'Đã đồng bộ thời gian thực',
+  error: 'Lỗi đồng bộ đám mây',
+  local: 'Đang lưu cục bộ'
 };
 
 let tasks = [];
 let localRev = 0, myRev = 0;
 let view = iso(mondayOf(new Date()));
-let lastDay = iso(new Date());
 let dragId = null, dragEl = null, editing = false, hoverTimer = null;
-let ref = null, writing = false, queued = false, saveTimer = null, saveState = 'init';
+let writing = false, queued = false, saveTimer = null, saveState = 'init';
 let pendingRemote = null, undoFn = null, toastTimer = null;
 const drafts = {};
 
@@ -256,7 +263,6 @@ const keeper = document.getElementById('keeper');
 const toastEl = document.getElementById('toast');
 
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 const busy = () => !!dragId || editing;
 
 function h(tag, attrs) {
@@ -282,7 +288,6 @@ function h(tag, attrs) {
   return el;
 }
 
-/* ---------- data ---------- */
 function clean(arr) {
   const out = [], seen = new Set();
   for (const o of arr) {
@@ -297,6 +302,7 @@ function clean(arr) {
   }
   return out;
 }
+
 function loadLocal() {
   try {
     const raw = localStorage.getItem(LS);
@@ -305,15 +311,19 @@ function loadLocal() {
     if (o && Array.isArray(o.tasks)) { tasks = clean(o.tasks); localRev = o.rev || 0; myRev = localRev; }
   } catch (e) {}
 }
+loadLocal();
+
 function writeLocal() {
   try { localStorage.setItem(LS, JSON.stringify({ tasks: tasks, rev: localRev })); } catch (e) {}
 }
+
 function commit() {
   localRev = Math.max(Date.now(), localRev + 1);
   writeLocal();
   render();
   scheduleSave();
 }
+
 function withUndo(msg, fn) {
   const snap = JSON.stringify(tasks);
   fn();
@@ -321,21 +331,22 @@ function withUndo(msg, fn) {
   showToast(msg, () => { tasks = JSON.parse(snap); commit(); });
 }
 
-/* ---------- saving to the account ---------- */
 function setStatus(s) {
   saveState = s;
   const el = document.getElementById('save-status');
   if (el) el.textContent = STATUS[s] || '';
 }
+
 function scheduleSave() {
-  if (!ref) { setStatus('local'); return; }
+  if (!db) { setStatus('local'); return; }
   setStatus('saving');
   clearTimeout(saveTimer);
   saveTimer = setTimeout(flush, 350);
 }
+
 async function flush() {
   clearTimeout(saveTimer); saveTimer = null;
-  if (!ref) { setStatus('local'); return; }
+  if (!db) { setStatus('local'); return; }
   if (writing) { queued = true; return; }
   writing = true;
   try {
@@ -343,16 +354,13 @@ async function flush() {
       queued = false;
       myRev = localRev;
       const body = { tasks: JSON.parse(JSON.stringify(tasks)), rev: myRev, v: 1 };
-      try { await ref.set(body); }
-      catch (e) {
-        if (e && e.code === 'unavailable') { await sleep(900 + Math.random() * 600); await ref.set(body); }
-        else throw e;
-      }
+      await db.ref('bahoang_planner/data').set(body);
     } while (queued);
     setStatus('saved');
   } catch (e) { setStatus('error'); }
   finally { writing = false; }
 }
+
 function adoptRemote(d) {
   tasks = clean(d.tasks);
   localRev = myRev = d.rev || 0;
@@ -360,39 +368,26 @@ function adoptRemote(d) {
   writeLocal();
   render();
 }
+
 function applyPending() {
   if (pendingRemote && !busy()) adoptRemote(pendingRemote);
 }
-async function connect() {
-  let db = null, user = null, id = null;
-  try {
-    if (window.claude && window.claude.use) {
-      const r = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
-      db = r[0]; user = r[1];
-    }
-  } catch (e) {}
-  try { id = user ? await user.id() : null; } catch (e) {}
-  if (!db || !id) { setStatus('local'); return; }
-  try { ref = db.doc('data/users/' + id + '/planner'); } catch (e) { setStatus('local'); return; }
-  let first = true;
-  ref.onSnapshot(function (snap) {
-    const d = snap.exists ? snap.data() : null;
+
+if (db) {
+  db.ref('bahoang_planner/data').on('value', (snap) => {
+    const d = snap.val();
     const remote = d && Array.isArray(d.tasks) ? d : null;
-    if (first) {
-      first = false;
-      if (remote && (remote.rev || 0) >= localRev) { adoptRemote(remote); setStatus('saved'); }
-      else if (tasks.length || (remote && localRev > 0)) scheduleSave();
+    if (!remote) {
+      if (tasks.length) scheduleSave();
       else setStatus('saved');
       return;
     }
-    if (snap.metadata.hasPendingWrites || !remote) return;
     if ((remote.rev || 0) <= myRev) return;
     if (busy()) { pendingRemote = remote; return; }
     adoptRemote(remote);
-  }, function () { ref = null; setStatus('local'); });
+  }, () => { setStatus('local'); });
 }
 
-/* ---------- actions ---------- */
 function addTask(text, day) {
   tasks.push({ id: uid(), t: text.trim().slice(0, 200), w: view, d: day, x: false, c: 0 });
   commit();
@@ -459,7 +454,6 @@ document.getElementById('toast-undo').addEventListener('click', () => {
   const f = undoFn; hideToast(); if (f) f();
 });
 
-/* ---------- drag and drop ---------- */
 function clearMarks() {
   root.querySelectorAll('.over, .ins-before, .ins-end').forEach(el => el.classList.remove('over', 'ins-before', 'ins-end'));
 }
@@ -506,7 +500,6 @@ function wireDrop(zone, listEl, day, horizontal) {
   });
 }
 
-/* ---------- views ---------- */
 function rangeText(mon) {
   const s = mon, e = addDays(mon, 6);
   if (s.getFullYear() !== e.getFullYear()) return s.getDate() + ' tháng ' + (s.getMonth() + 1) + ', ' + s.getFullYear() + ' – ' + e.getDate() + ' tháng ' + (e.getMonth() + 1) + ', ' + e.getFullYear();
@@ -715,42 +708,13 @@ function foot() {
 }
 
 function render() {
-  const ae = document.activeElement;
-  const fk = ae && ae.dataset ? ae.dataset.fk : null;
-  if (dragEl && dragEl.isConnected) keeper.append(dragEl);
   const days = [];
   for (let i = 0; i < 7; i++) days.push(dayCol(i));
   root.replaceChildren(header(), banner(), strip(), lane(), h('div', { class: 'days' }, days), foot());
-  if (fk) {
-    const n = root.querySelector('[data-fk="' + fk.replace(/"/g, '\\"') + '"]');
-    if (n) {
-      n.focus({ preventScroll: true });
-      if (n.tagName === 'INPUT') n.setSelectionRange(n.value.length, n.value.length);
-    }
-  }
 }
 
-/* ---------- keyboard, lifecycle ---------- */
-document.addEventListener('keydown', e => {
-  if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
-  const el = e.target;
-  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
-  if (e.key === 'ArrowLeft') { e.preventDefault(); shiftView(-1); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); shiftView(1); }
-  else if (e.key === 't' || e.key === 'T') { goto(iso(mondayOf(new Date()))); }
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && saveTimer) flush();
-});
-setInterval(() => {
-  const d = iso(new Date());
-  if (d !== lastDay && !busy()) { lastDay = d; render(); }
-}, 60000);
-
-loadLocal();
 render();
-connect();
+
 })();
 </script>
-
 </body></html>
